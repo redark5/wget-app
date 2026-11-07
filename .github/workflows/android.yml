@@ -10,15 +10,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # SDK first, while the runner's default JDK (17) is active —
-      # the modern sdkmanager needs JDK 11+ to run.
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
+      # Use the runner's preinstalled Android SDK (default JDK 17 is active here,
+      # which the modern sdkmanager requires) to add the exact old components
+      # this AGP 3.5.0 project needs.
       - name: Install platform-29 + build-tools 29.0.2
-        run: sdkmanager "platforms;android-29" "build-tools;29.0.2"
+        run: |
+          SDKMGR="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
+          "$SDKMGR" "platforms;android-29" "build-tools;29.0.2"
 
-      # Gradle 5.4.1 / AGP 3.5.0 require JDK 8 — switch only now.
+      # Gradle 5.4.1 / AGP 3.5.0 require JDK 8 — switch only after the SDK step.
       - name: Set up JDK 8
         uses: actions/setup-java@v4
         with:
